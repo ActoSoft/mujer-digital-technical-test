@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "baseUrl": ".",
+        "baseUrl": "https://webapp-e4a61.web.app/",
         "paths": {
             "@/*": [
                 "./src/*"

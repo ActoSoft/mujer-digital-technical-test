@@ -1,8 +1,9 @@
 {
   "projects": {
-    "default": "digital-woman-technical",
+    "default": "webapp-e4a61",
     "develop": "digital-woman-technical",
-    "stage": "digital-woman-technical-stage"
+    "stage": "digital-woman-technical-stage",
+    "prueba": "webapp-e4a61"
   },
   "targets": {},
   "etags": {}
