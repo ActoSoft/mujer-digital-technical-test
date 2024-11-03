@@ -10,10 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
+    "@fortawesome/fontawesome-svg-core": "^6.6.0",
+    "@fortawesome/free-solid-svg-icons": "^6.6.0",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "firebase": "^10.14.1",
-    "firebase-admin": "^12.6.0",
+    "firebase-admin": "^12.7.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "styled-components": "^6.1.13"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
@@ -26,3 +31,5 @@
     "vite": "^5.2.0"
   }
 }
+
+
