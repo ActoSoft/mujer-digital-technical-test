@@ -1,64 +1,124 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from './firebaseConfig'; 
 
 const OrderForm = () => {
   const [customerName, setCustomerName] = useState('');
-  const [items, setItems] = useState([]);
-  const [total, setTotal] = useState('');
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [total, setTotal] = useState(0);
   const [modality, setModality] = useState('');
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  // Precios de los elementos del menú
+  const menuItems = [
+    { name: 'Hamburguesa simple', price: 100 },
+    { name: 'Hot dog', price: 70 },
+    { name: 'Hamburguesa doble', price: 150 },
+    { name: 'Papas fritas frescas', price: 80 },
+    { name: 'Soda', price: 25 }
+  ];
 
-    if (customerName  items.length === 0  total) {
-      alert("Por favor, complete todos los campos y seleccione al menos un artículo.");
+  // Calcula el total automáticamente cuando cambian los elementos seleccionados
+  useEffect(() => {
+    const totalAmount = selectedItems.reduce((sum, item) => {
+      const menuItem = menuItems.find(menuItem => menuItem.name === item);
+      return sum + (menuItem ? menuItem.price : 0);
+    }, 0);
+    setTotal(totalAmount);
+  }, [selectedItems]);
+
+  const handleCheckboxChange = (itemName) => {
+    setSelectedItems(prevItems =>
+      prevItems.includes(itemName)
+        ? prevItems.filter(item => item !== itemName)
+        : [...prevItems, itemName]
+    );
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validaciones
+    if (!customerName || selectedItems.length === 0) {
+      alert("Por favor, completa todos los campos obligatorios.");
       return;
     }
 
-    const orderData = {
-      customerName,
-      items,
-      total: parseFloat(total),
-      modality,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    // Aquí puedes llamar a Firebase para guardar el pedido
-    console.log("Pedido creado:", orderData);
-    alert("Pedido creado exitosamente");
-  };
-
-  const handleItemChange = (event) => {
-    const value = event.target.value;
-    setItems(prevItems => 
-      event.target.checked ? [...prevItems, value] : prevItems.filter(item => item !== value)
-    );
+    try {
+      await addDoc(collection(db, 'orders'), {
+        customerName,
+        items: selectedItems,
+        total,
+        modality,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      alert('Pedido enviado exitosamente');
+      // Limpiar el formulario
+      setCustomerName('');
+      setSelectedItems([]);
+      setTotal(0);
+      setModality('');
+    } catch (error) {
+      console.error("Error al enviar el pedido:", error);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <label>
-        Nombre del cliente:
-        <input type="text" value={customerName} onChange={(e) => setCustomerName(e.target.value)} required />
-      </label>
+      <div>
+        <label>Nombre del cliente:</label>
+        <input
+          type="text"
+          value={customerName}
+          onChange={(e) => setCustomerName(e.target.value)}
+          required
+        />
+      </div>
 
-      <p>Seleccione los elementos del menú:</p>
-      <label><input type="checkbox" value="Hamburguesa simple" onChange={handleItemChange} /> Hamburguesa simple</label><br />
-      <label><input type="checkbox" value="Hot dog" onChange={handleItemChange} /> Hot dog</label><br />
-      <label><input type="checkbox" value="Hamburguesa doble" onChange={handleItemChange} /> Hamburguesa doble</label><br />
-      <label><input type="checkbox" value="Papas fritas frescas" onChange={handleItemChange} /> Papas fritas frescas</label><br />
-      <label><input type="checkbox" value="Soda" onChange={handleItemChange} /> Soda</label><br />
+      <div>
+        <label>Selecciona los elementos del menú:</label>
+        {menuItems.map((item) => (
+          <label key={item.name}>
+            <input
+              type="checkbox"
+              value={item.name}
+              checked={selectedItems.includes(item.name)}
+              onChange={() => handleCheckboxChange(item.name)}
+            />
+            {item.name} - ${item.price}
+          </label>
+        ))}
+      </div>
 
-      <label>
-        Importe total:
-        <input type="number" value={total} onChange={(e) => setTotal(e.target.value)} required />
-      </label>
+      <div>
+        <label>Importe total: ${total}</label>
+      </div>
 
-      <p>Recogida o Entrega:</p>
-      <label><input type="radio" name="modality" value="pickup" onChange={(e) => setModality(e.target.value)} required /> Recogida</label>
-      <label><input type="radio" name="modality" value="delivery" onChange={(e) => setModality(e.target.value)} required /> Entrega</label><br />
+      <div>
+        <label>Modalidad:</label>
+        <label>
+          <input
+            type="radio"
+            value="recogida"
+            checked={modality === "recogida"}
+            onChange={(e) => setModality(e.target.value)}
+            required
+          />
+          Recogida
+        </label>
+        <label>
+          <input
+            type="radio"
+            value="entrega"
+            checked={modality === "entrega"}
+            onChange={(e) => setModality(e.target.value)}
+            required
+          />
+          Entrega
+        </label>
+      </div>
 
-      <button type="submit">Enviar</button>
+      <button type="submit">Enviar pedido</button>
     </form>
   );
 };
