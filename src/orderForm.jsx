@@ -7,8 +7,8 @@ const OrderForm = () => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [modality, setModality] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Precios de los elementos del menú
   const menuItems = [
     { name: 'Hamburguesa simple', price: 100 },
     { name: 'Hot dog', price: 70 },
@@ -17,7 +17,6 @@ const OrderForm = () => {
     { name: 'Soda', price: 25 }
   ];
 
-  // Calcula el total automáticamente cuando cambian los elementos seleccionados
   useEffect(() => {
     const totalAmount = selectedItems.reduce((sum, item) => {
       const menuItem = menuItems.find(menuItem => menuItem.name === item);
@@ -36,13 +35,12 @@ const OrderForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validaciones
-    if (!customerName || selectedItems.length === 0) {
+    if (!customerName.trim() || selectedItems.length === 0) {
       alert("Por favor, completa todos los campos obligatorios.");
       return;
     }
 
+    setLoading(true);
     try {
       await addDoc(collection(db, 'orders'), {
         customerName,
@@ -53,13 +51,14 @@ const OrderForm = () => {
         updatedAt: serverTimestamp()
       });
       alert('Pedido enviado exitosamente');
-      // Limpiar el formulario
       setCustomerName('');
       setSelectedItems([]);
       setTotal(0);
       setModality('');
     } catch (error) {
-      console.error("Error al enviar el pedido:", error);
+      console.error("Error al enviar el pedido:", error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -118,7 +117,9 @@ const OrderForm = () => {
         </label>
       </div>
 
-      <button type="submit">Enviar pedido</button>
+      <button type="submit" disabled={loading}>
+        {loading ? 'Enviando...' : 'Enviar pedido'}
+      </button>
     </form>
   );
 };

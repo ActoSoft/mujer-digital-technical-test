@@ -1,20 +1,24 @@
+// Importación de las funciones necesarias de Firebase
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore"; // Si usas Firestore
-import { getAuth } from "firebase/auth"; // Si usas Autenticación
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
+// Configuración de Firebase usando variables de entorno
 const firebaseConfig = {
-  apiKey:  import.meta.env.VITE_API_KEY,
+  apiKey: import.meta.env.VITE_API_KEY,
   authDomain: import.meta.env.VITE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_PROJECT_ID,
-  storageBucket:  import.meta.env.VITE_STORAGE_BUCKET,
-  messagingSenderId:  import.meta.env.VITE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_APP_ID
+  storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_APP_ID,
 };
 
-// Inicializa Firebase
+// Inicialización de la app de Firebase
 const app = initializeApp(firebaseConfig);
 
-// Exporta servicios según los necesites
+// Inicialización de Firestore y Auth
 export const db = getFirestore(app);
 export const auth = getAuth(app);
+
+// Exportación de la app por si se necesita usarla en otros lugares
 export default app;
