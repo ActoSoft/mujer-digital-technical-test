@@ -3,6 +3,7 @@ import viteLogo from '/vite.svg';
 import './App.css';
 import React from 'react';
 import OrderForm from './orderForm';
+import OrderList from './OrderList'; // Importacion del componente
 
 function App() {
   const [count, setCount] = useState(0);
@@ -31,7 +32,10 @@ function App() {
         <h1>Bienvenido al Restaurante</h1>
         <p>Por favor, realiza tu pedido a continuación:</p>
         
-        <OrderForm />
+        <OrderForm /> {/* Componente del formulario de pedidos */}
+
+        <h2>Pedidos registrados:</h2>
+        <OrderList /> {/* Componente para mostrar los pedidos */}
 
         <footer>Gracias por visitarnos</footer>
       </div>

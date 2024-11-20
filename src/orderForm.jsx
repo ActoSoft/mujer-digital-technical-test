@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from './firebaseConfig'; 
+import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from './firebaseConfig';
 
-const OrderForm = () => {
-  const [customerName, setCustomerName] = useState('');
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [modality, setModality] = useState('');
+const OrderForm = ({ initialData = null, onSubmit, onCancel }) => {
+  const [customerName, setCustomerName] = useState(initialData?.customerName || '');
+  const [selectedItems, setSelectedItems] = useState(initialData?.items || []);
+  const [total, setTotal] = useState(initialData?.total || 0);
+  const [modality, setModality] = useState(initialData?.modality || '');
   const [loading, setLoading] = useState(false);
 
   const menuItems = [
@@ -17,6 +17,7 @@ const OrderForm = () => {
     { name: 'Soda', price: 25 }
   ];
 
+  // Calcula el total dinámicamente al cambiar los elementos seleccionados
   useEffect(() => {
     const totalAmount = selectedItems.reduce((sum, item) => {
       const menuItem = menuItems.find(menuItem => menuItem.name === item);
@@ -25,6 +26,7 @@ const OrderForm = () => {
     setTotal(totalAmount);
   }, [selectedItems]);
 
+  // Maneja la selección de elementos del menú
   const handleCheckboxChange = (itemName) => {
     setSelectedItems(prevItems =>
       prevItems.includes(itemName)
@@ -33,8 +35,10 @@ const OrderForm = () => {
     );
   };
 
+  // Maneja el envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!customerName.trim() || selectedItems.length === 0) {
       alert("Por favor, completa todos los campos obligatorios.");
       return;
@@ -42,15 +46,42 @@ const OrderForm = () => {
 
     setLoading(true);
     try {
-      await addDoc(collection(db, 'orders'), {
-        customerName,
-        items: selectedItems,
-        total,
-        modality,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-      alert('Pedido enviado exitosamente');
+      if (initialData) {
+        // Actualización de un pedido existente
+        const docRef = doc(db, 'orders', initialData.id);
+        await updateDoc(docRef, {
+          customerName,
+          items: selectedItems,
+          total,
+          modality,
+          updatedAt: serverTimestamp()
+        });
+        alert('Pedido actualizado exitosamente.');
+      } else {
+        // Creación de un nuevo pedido
+        await addDoc(collection(db, 'orders'), {
+          customerName,
+          items: selectedItems,
+          total,
+          modality,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        alert('Pedido enviado exitosamente.');
+      }
+
+      // Llama a la función de envío proporcionada
+      if (onSubmit) {
+        onSubmit({
+          id: initialData?.id || null,
+          customerName,
+          items: selectedItems,
+          total,
+          modality
+        });
+      }
+
+      // Limpia el formulario después de enviar
       setCustomerName('');
       setSelectedItems([]);
       setTotal(0);
@@ -118,8 +149,13 @@ const OrderForm = () => {
       </div>
 
       <button type="submit" disabled={loading}>
-        {loading ? 'Enviando...' : 'Enviar pedido'}
+        {loading ? 'Procesando...' : initialData ? 'Actualizar pedido' : 'Enviar pedido'}
       </button>
+      {onCancel && (
+        <button type="button" onClick={onCancel}>
+          Cancelar
+        </button>
+      )}
     </form>
   );
 };
